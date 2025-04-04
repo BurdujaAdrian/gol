@@ -2,7 +2,9 @@ shader_type canvas_item;
 
 uniform sampler2D unlitTexture; // Texture for binary 0
 uniform sampler2D litTexture; // Texture for binary 1
+uniform sampler2D binaryDeadTexture;
 uniform sampler2D binaryDataTexture; // 2D texture for binary data
+uniform sampler2D deadzoneDataTexture;
 uniform int gridWidth;      // Number of cells horizontally and vertically
 
 const int cellSize = 8;    // Cell size in pixels
@@ -24,17 +26,23 @@ void fragment() {
 	);
 
 	float binaryValue = texture(binaryDataTexture, binaryDataUV).r;
-
+	float binaryDead = texture(deadzoneDataTexture, binaryDataUV).r;
 	bool isWhite = binaryValue > 0.5;
+	bool isDeadzone = binaryDead > 0.9;
 
 	float distanceX = min(scaledUV.x, float(gridWidth) - scaledUV.x) * float(cellSize);
 	float distanceY = min(scaledUV.y, float(gridWidth) - scaledUV.y) * float(cellSize);
 	float distanceToBorder = min(distanceX, distanceY);
 
 	vec4 color = texture(unlitTexture, cellUV);
+	vec4 dead_color = texture(binaryDeadTexture, cellUV);
 
 	if(isWhite && isInsideCell){
 		color = texture(litTexture, cellUV);
+	}
+	
+	if(isDeadzone && isInsideCell){
+		color = dead_color;
 	}
 
 	float alphaFactor = log(distanceToBorder) / log(fadeDistance);

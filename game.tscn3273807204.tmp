@@ -1,9 +1,8 @@
-[gd_scene load_steps=13 format=3 uid="uid://delfwfea3se30"]
+[gd_scene load_steps=12 format=3 uid="uid://delfwfea3se30"]
 
 [ext_resource type="Texture2D" uid="uid://y5xjoc1m1tav" path="res://icon.svg" id="1_80nbo"]
 [ext_resource type="Shader" uid="uid://di03bx5b3ry5m" path="res://matrix.gdshader" id="1_e2o6t"]
 [ext_resource type="Texture2D" uid="uid://d30m2urbksd5u" path="res://textures/whitepiece.png" id="2_feb5d"]
-[ext_resource type="Texture2D" uid="uid://cyubtfqttugn" path="res://textures/corss.png" id="2_ryrav"]
 [ext_resource type="Texture2D" uid="uid://dajf0hv4o35se" path="res://textures/blackpiece.png" id="3_fc0e3"]
 [ext_resource type="Script" uid="uid://cguvgjtvwmjxy" path="res://dispatcher.gd" id="5_7jktm"]
 
@@ -28,7 +27,6 @@ noise = SubResource("FastNoiseLite_ryrav")
 shader = ExtResource("1_e2o6t")
 shader_parameter/unlitTexture = ExtResource("3_fc0e3")
 shader_parameter/litTexture = ExtResource("2_feb5d")
-shader_parameter/binaryDeadTexture = ExtResource("2_ryrav")
 shader_parameter/binaryDataTexture = SubResource("NoiseTexture2D_7jktm")
 shader_parameter/deadzoneDataTexture = SubResource("NoiseTexture2D_eow3j")
 shader_parameter/gridWidth = 256
