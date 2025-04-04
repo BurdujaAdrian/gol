@@ -7,14 +7,23 @@ class_name Dispatcher
 var size = 256
 @export_file var computeShader: String = "res://gol.glsl"
 @onready var renderer: Sprite2D = $"../renderer"
-
+var generation := 0
 var rd: RenderingDevice
 var inputTexture : RID 
 var outputTexture : RID 
 var uniformSet : RID 
 var shader : RID 
 var pipeline : RID 
+var friendly_start := Vector2i(32, 32)
+var friendly_end := Vector2i(64, 64)
+var reverse_interval := 10
+var enable_exploding := true
+var enable_reversing := true
+var deadly_start := Vector2i(96, 96)
+var deadly_end := Vector2i(128, 128)
 
+var barrier_start := Vector2i(160, 160)
+var barrier_end := Vector2i(192, 192)
 var inputUniform: RDUniform
 var outputUniform: RDUniform
 var bindings: Array[RDUniform]
@@ -181,14 +190,32 @@ func start_process_loop():
 		Render()
 		
 func Update():
-	var compute_list= rd.compute_list_begin()
-	rd.compute_list_bind_compute_pipeline(compute_list,pipeline)
-	rd.compute_list_bind_uniform_set(compute_list,uniformSet,0)
-	rd.compute_list_dispatch(compute_list,32,32,1)
+	generation += 1
+
+	var compute_list = rd.compute_list_begin()
+	rd.compute_list_bind_compute_pipeline(compute_list, pipeline)
+	rd.compute_list_bind_uniform_set(compute_list, uniformSet, 0)
+
+	# Push constants
+	var push_constants = PackedByteArray()
+	push_constants.append_vector2i(friendly_start)
+	push_constants.append_vector2i(friendly_end)
+	push_constants.append_vector2i(deadly_start)
+	push_constants.append_vector2i(deadly_end)
+	push_constants.append_vector2i(barrier_start)
+	push_constants.append_vector2i(barrier_end)
+	push_constants.append_int(generation)
+	push_constants.append_int(reverse_interval)
+	push_constants.append_bool(enable_exploding)
+	push_constants.append_bool(enable_reversing)
+
+	rd.compute_list_set_push_constant(compute_list, push_constants, push_constants.size())
+
+	# Dispatch
+	rd.compute_list_dispatch(compute_list, 32, 32, 1)
 	rd.compute_list_end()
 	rd.submit()
-	
-	pass
+
 	
 	
 func Render():
