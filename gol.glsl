@@ -11,9 +11,23 @@ layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 layout (set = 0, binding = 0, r8) restrict uniform readonly image2D inputImage;
 layout (set = 0, binding = 1, r8) restrict uniform writeonly image2D outputImage;
 
+layout (set = 0, binding = 2, r8) restrict uniform readonly image2D deadImage;
+layout (set = 0, binding = 2, r8) restrict uniform readonly image2D greenImage;
+
 bool isCellAlive(int x, int y) {
     vec4 pixel = imageLoad(inputImage, ivec2(x, y));
     return pixel.r > 0.5;
+}
+
+bool isDeadZone(int x, int y){
+    vec4 pixel = imageLoad(deadImage, ivec2(x,y));
+    return pixel.r > 0.8;
+}
+
+bool isGreenZone(int x, int y){
+    vec4 pixel = imageLoad(greenImage, ivec2(x,y));
+    return pixel.r > 0.6;
+
 }
 
 int getLiveNeighbours(int x, int y) {
@@ -35,13 +49,31 @@ int getLiveNeighbours(int x, int y) {
 void main() {
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
     if(pos.x >= gridWidth || pos.y >= gridWidth) return;
+
+    if(isDeadZone(pos.x,pos.y)){
+        imageStore(outputImage, pos, deadColor);
+        return;
+    }
     int liveNeighbours = getLiveNeighbours(pos.x, pos.y);
+
     bool isAlive = isCellAlive(pos.x, pos.y);
+    bool isGreen = isGreenZone(pos.x,pos.y);
+
     bool nextState = isAlive;
-    if(isAlive && (liveNeighbours < 2 || liveNeighbours > 3)){
-        nextState = false;
-    } else if(!isAlive && liveNeighbours == 3){
-        nextState = true;
+    
+    if(isGreen){
+        if(isAlive && (liveNeighbours < 2 || liveNeighbours > 2)){
+            nextState = false;
+        } else if(!isAlive && liveNeighbours == 2){
+            nextState = true;
+        }
+
+    } else {
+        if(isAlive && (liveNeighbours < 2 || liveNeighbours > 3)){
+            nextState = false;
+        } else if(!isAlive && liveNeighbours == 3){
+            nextState = true;
+        }
     }
     
     vec4 newColor = nextState ? aliveColor : deadColor;

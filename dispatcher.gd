@@ -1,16 +1,25 @@
 extends Node 
+
+
 class_name Dispatcher
-@export var updateFrequency: int = 60
+
+@export var updateFrequency: int = 1
 @export var autoStart:bool
 @export var dataTexture:Texture2D
+@export var dataDead:Texture2D
+@export var dataGreen:Texture2D
 
-var size = 256
+
+var size = 128
 @export_file var computeShader: String = "res://gol.glsl"
 @onready var renderer: Sprite2D = $"../renderer"
 
 var rd: RenderingDevice
 var inputTexture : RID 
 var outputTexture : RID 
+var deadTexture : RID
+var greenTexture: RID
+
 var uniformSet : RID 
 var shader : RID 
 var pipeline : RID 
@@ -21,7 +30,11 @@ var bindings: Array[RDUniform]
 
 var inputImage:Image
 var outputImage:Image
+var deadImage:Image
+var greenImage:Image
 var renderTexture: ImageTexture
+var renderDeadTexture: ImageTexture
+var renderGreenTexture: ImageTexture
 
 var inputFormat: RDTextureFormat
 var outputFormat: RDTextureFormat
@@ -56,6 +69,7 @@ func _input(event: InputEvent) -> void:
 			if processing:
 				processing = false
 			get_tree().quit()
+	
 	pass
 	
 func _notification(what: int) -> void:
@@ -92,8 +106,12 @@ func link_output_texture_to_renderer():
 	var mat = renderer.material as ShaderMaterial
 	
 	renderTexture = ImageTexture.create_from_image(outputImage)
+	renderDeadTexture = ImageTexture.create_from_image(deadImage)
+	renderGreenTexture = ImageTexture.create_from_image(greenImage)
 	if mat:
 		mat.set_shader_parameter("binaryDataTexture",renderTexture)
+		mat.set_shader_parameter("deadzoneDataTexture",renderDeadTexture)
+		mat.set_shader_parameter("greenDataTexture",renderGreenTexture)
 
 
 func create_and_validate_images():
@@ -107,6 +125,25 @@ func create_and_validate_images():
 	else:
 		inputImage = dataTexture.get_image()
 	
+	if dataDead == null:
+		var noise = FastNoiseLite.new()
+		noise.frequency = 0.1
+		
+		var noise_image = noise.get_image(size,size)
+		deadImage = noise_image
+	else:
+		deadImage = dataDead.get_image()
+	
+	if dataGreen == null:
+		var noise = FastNoiseLite.new()
+		noise.frequency = 0.1
+		
+		var noise_image = noise.get_image(size,size)
+		greenImage = noise_image
+	else:
+		greenImage = dataGreen.get_image()
+		
+		
 	mergeImage()
 	link_output_texture_to_renderer()
 		
@@ -160,6 +197,9 @@ func create_texture_and_uniform(image:Image, format:RDTextureFormat,binding:int)
 func create_uniforms():
 	inputTexture = create_texture_and_uniform(inputImage,inputFormat, 0)
 	outputTexture = create_texture_and_uniform(outputImage,outputFormat, 1)
+	deadTexture = create_texture_and_uniform(deadImage, inputFormat,2)
+	greenTexture = create_texture_and_uniform(greenImage, inputFormat,3)
+	
 	
 	uniformSet = rd.uniform_set_create(bindings, shader, 0)
 
@@ -207,6 +247,8 @@ func cleanup():
 		return
 	rd.free_rid(inputTexture)
 	rd.free_rid(outputTexture)
+	rd.free_rid(deadImage)
+	rd.free_rid(greenImage)
 	rd.free_rid(uniformSet)
 	rd.free_rid(pipeline)
 	rd.free_rid(shader)

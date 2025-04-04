@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://delfwfea3se30"]
+[gd_scene load_steps=15 format=3 uid="uid://delfwfea3se30"]
 
 [ext_resource type="Texture2D" uid="uid://y5xjoc1m1tav" path="res://icon.svg" id="1_80nbo"]
 [ext_resource type="Shader" uid="uid://di03bx5b3ry5m" path="res://matrix.gdshader" id="1_e2o6t"]
@@ -10,8 +10,8 @@
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_fc0e3"]
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_7jktm"]
-width = 256
-height = 256
+width = 128
+height = 128
 noise = SubResource("FastNoiseLite_fc0e3")
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_ryrav"]
@@ -19,19 +19,27 @@ noise_type = 0
 seed = 1
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_eow3j"]
-width = 256
-height = 256
+width = 128
+height = 128
 generate_mipmaps = false
 noise = SubResource("FastNoiseLite_ryrav")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_eow3j"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_j5wjh"]
+width = 128
+height = 128
+noise = SubResource("FastNoiseLite_eow3j")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ryrav"]
 shader = ExtResource("1_e2o6t")
 shader_parameter/unlitTexture = ExtResource("3_fc0e3")
 shader_parameter/litTexture = ExtResource("2_feb5d")
-shader_parameter/binaryDeadTexture = ExtResource("2_ryrav")
 shader_parameter/binaryDataTexture = SubResource("NoiseTexture2D_7jktm")
+shader_parameter/binaryDeadTexture = ExtResource("2_ryrav")
 shader_parameter/deadzoneDataTexture = SubResource("NoiseTexture2D_eow3j")
-shader_parameter/gridWidth = 256
+shader_parameter/greenDataTexture = SubResource("NoiseTexture2D_j5wjh")
+shader_parameter/gridWidth = 128
 
 [sub_resource type="Environment" id="Environment_fc0e3"]
 background_mode = 3
